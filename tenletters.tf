@@ -1,6 +1,10 @@
 variable "do_token" {}
 variable "atlas_token" {}
 
+atlas {
+  name = "orclev/digitalocean"
+}
+
 provider "digitalocean" {
   token = "${var.do_token}"
 }
