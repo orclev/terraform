@@ -1,4 +1,5 @@
 variable "do_token" {}
+variable "atlas_token" {}
 
 provider "digitalocean" {
   token = "${var.do_token}"
@@ -32,6 +33,7 @@ resource "digitalocean_droplet" "nomad_master" {
       "sudo sed -i 's/NOMAD_RPC/${digitalocean_droplet.nomad_master.ipv4_address_private}:4647/g' /tmp/server.conf",
       "sudo sed -i 's/NOMAD_HTTP/${digitalocean_droplet.nomad_master.ipv4_address}:4646/g' /tmp/server.conf",
       "sudo sed -i 's/NOMAD_SERF/${digitalocean_droplet.nomad_master.ipv4_address_private}:4648/g' /tmp/server.conf",
+      "sudo sed -i 's/ATLAS_TOKEN/${var.atlas_token}/g' /tmp/server.conf",
       "sudo mkdir /etc/nomad",
       "sudo mv /tmp/server.conf /etc/nomad/",
       "docker run -d --name nomad -v /var/run/docker.sock:/var/run/docker.sock -v /etc/nomad/server.conf:/etc/nomad/server.conf -p 4646:4646 -p 4647:4647 -p 4648:4648 shanesveller/nomad:0.2.2 agent -config /etc/nomad/server.conf"

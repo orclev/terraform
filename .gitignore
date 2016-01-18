@@ -1,0 +1,8 @@
+terraform.tfvars
+.terraform/
+certs/
+clean.plan
+terraform_rsa
+terraform_rsa.pub
+terraform.tfstate.backup
+terraform.tfstate.old
