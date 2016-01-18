@@ -1,6 +1,7 @@
 variable "do_token" {}
 variable "atlas_token" {}
 variable "ssh_fingerprint" {}
+variable "ssh_private" {}
 
 atlas {
   name = "orclev/digitalocean"
@@ -23,7 +24,7 @@ resource "digitalocean_droplet" "nomad_master" {
     type = "ssh"
     user = "core"
     #host = "nomad-master.tenletters.org"
-    private_key = "${file("terraform_rsa")}"
+    private_key = "${var.ssh_private}"
     timeout = "5m"
     agent = false
   }
