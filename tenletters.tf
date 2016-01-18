@@ -2,6 +2,7 @@ variable "do_token" {}
 variable "atlas_token" {}
 variable "ssh_fingerprint" {}
 variable "ssh_private" {}
+variable "ssh_public" {}
 
 atlas {
   name = "orclev/digitalocean"
@@ -19,7 +20,7 @@ resource "digitalocean_droplet" "nomad_master" {
   ipv6 = true
   private_networking = true
   backups = false
-  ssh_keys = [1525856,"${var.ssh_fingerprint}"]
+  ssh_keys = [1525856,"${digitalocean_ssh_key.terraform.id}"]
   connection {
     type = "ssh"
     user = "core"
@@ -48,6 +49,11 @@ resource "digitalocean_droplet" "nomad_master" {
   }
 }
 
+resource "digitalocean_ssh_key" "terraform" {
+  name = "Terraform"
+  public_key = "${var.ssh_public}"
+}
+
 resource "digitalocean_floating_ip" "nomad_master" {
   region = "nyc3"
   droplet_id = "${digitalocean_droplet.nomad_master.id}"
@@ -68,7 +74,7 @@ resource "digitalocean_droplet" "nomad_slave" {
   ipv6 = true
   private_networking = true
   backups = false
-  ssh_keys = [1525856,"${var.ssh_fingerprint}"]
+  ssh_keys = [1525856,"${digitalocean_ssh_key.terraform.id}"]
   #depends_on = ["digitalocean_droplet.nomad_master"]
   connection {
     type = "ssh"
