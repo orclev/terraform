@@ -35,6 +35,11 @@ resource "digitalocean_droplet" "nomad_master" {
     destination = "/tmp/server.conf"
   }
 
+  provisioner "file" {
+    source = "consul_server.conf"
+    destination = "/tmp/consul_server.conf"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sudo sed -i 's/NOMAD_RPC/${digitalocean_droplet.nomad_master.ipv4_address_private}:4647/g' /tmp/server.conf",
@@ -43,7 +48,11 @@ resource "digitalocean_droplet" "nomad_master" {
       "sudo sed -i 's/ATLAS_TOKEN/${var.atlas_token}/g' /tmp/server.conf",
       "sudo mkdir /etc/nomad",
       "sudo mv /tmp/server.conf /etc/nomad/",
-      "docker run -name consul voxxit/consul agent -atlas orclev/digitalocean -atlas-join -atlas-token ${var.atlas_token} -bootstrap-expect 1 -server -advertise ${digitalocean_droplet.nomad_master.ipv4_address_private} -data-dir /srv/consul",
+      "sudo sed -i 's/ATLAS_TOKEN/${var.atlas_token}/g' /tmp/consul_server.conf",
+      "sudo sed -i 's/CONSUL_IP/${digitalocean_droplet.nomad_master.ipv4_address_private}/g' /tmp/consul_server.conf",
+      "sudo mkdir /etc/consul",
+      "sudo mv /tmp/consul_server.conf /etc/consul/",
+      "docker run -name consul -v /etc/consul/consul_server.conf:/etc/consul/consul_server.conf voxxit/consul agent -config-file /etc/consul/consul_server.conf",
       "docker run -d --name nomad -v /var/run/docker.sock:/var/run/docker.sock -v /etc/nomad/server.conf:/etc/nomad/server.conf -p 4646:4646 -p 4647:4647 -p 4648:4648 shanesveller/nomad:0.2.2 agent -config /etc/nomad/server.conf"
     ]
   }
@@ -89,12 +98,22 @@ resource "digitalocean_droplet" "nomad_slave" {
     destination = "/tmp/client.conf"
   }
 
+  provisioner "file" {
+    source = "consul_client.conf"
+    destination = "/tmp/consul_client.conf"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "sudo sed -i 's/NOMAD_MASTER_ADDR/${digitalocean_droplet.nomad_master.ipv4_address_private}:4647/g' /tmp/client.conf",
       "sudo mkdir /etc/nomad",
       "sudo mv /tmp/client.conf /etc/nomad/",
-      "docker run -d --name consul voxxit/consul agent -atlas orclev/digitalocean -atlas-join -atlas-token ${var.atlas_token} -join ${digitalocean_droplet.nomad_master.ipv4_address_private} -data-dir /srv/consul",
+      "sudo sed -i 's/ATLAS_TOKEN/${var.atlas_token}/g' /tmp/consul_client.conf",
+      "sudo sed -i 's/CONSUL_IP/${digitalocean_droplet.nomad_slave.ipv4_address_private}/g' /tmp/consul_client.conf",
+      "sudo sed -i 's/CONSUL_MASTER/${digitalocean_droplet.nomad_master.ipv4_address_private}/g' /tmp/consul_client.conf",
+      "sudo mkdir /etc/consul",
+      "sudo mv /tmp/consul_client.conf /etc/consul/",
+      "docker run -name consul -v /etc/consul/consul_client.conf:/etc/consul/consul_client.conf voxxit/consul agent -config-file /etc/consul/consul_client.conf",
       "docker run -d --name nomad -v /var/run/docker.sock:/var/run/docker.sock -v /etc/nomad/client.conf:/etc/nomad/client.conf -p 4646:4646 -p 4647:4647 -p 4648:4648 shanesveller/nomad:0.2.2 agent -config /etc/nomad/client.conf"
     ]
   }
