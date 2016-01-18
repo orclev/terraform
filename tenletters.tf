@@ -79,7 +79,7 @@ resource "digitalocean_droplet" "nomad_slave" {
   connection {
     type = "ssh"
     user = "core"
-    private_key = "${file("terraform_rsa")}"
+    private_key = "${var.ssh_private}"
     timeout = "5m"
     agent = false
   }
