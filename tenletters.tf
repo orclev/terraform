@@ -109,7 +109,6 @@ resource "digitalocean_droplet" "nomad_slave" {
       "sudo mkdir /etc/nomad",
       "sudo mv /tmp/client.conf /etc/nomad/",
       "sudo sed -i 's/ATLAS_TOKEN/${var.atlas_token}/g' /tmp/consul_client.conf",
-      "sudo sed -i 's/CONSUL_IP/${digitalocean_droplet.nomad_slave.ipv4_address_private}/g' /tmp/consul_client.conf",
       "sudo sed -i 's/CONSUL_MASTER/${digitalocean_droplet.nomad_master.ipv4_address_private}/g' /tmp/consul_client.conf",
       "sudo mkdir /etc/consul",
       "sudo mv /tmp/consul_client.conf /etc/consul/",
